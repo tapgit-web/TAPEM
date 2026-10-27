@@ -1,0 +1,6 @@
+/* Reset Vite default styles - Handled completely by global.css */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
