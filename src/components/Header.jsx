@@ -7,8 +7,10 @@ import {
   CloudOff, 
   Clock, 
   Settings2, 
-  Menu 
+  Menu,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header({ 
   activeTab, 
@@ -16,8 +18,10 @@ export default function Header({
   reportCount = 0, 
   isOnlineWithSheets = false, 
   onOpenConfig,
+  onOpenProfile,
   onToggleSidebar 
 }) {
+  const { user, logout } = useAuth();
   const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
@@ -41,6 +45,15 @@ export default function Header({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <header className="app-header">
@@ -136,6 +149,40 @@ export default function Header({
           >
             <Settings2 size={18} />
           </button>
+
+          {/* Authenticated User Badge (Clickable to Edit Employee ID) */}
+          {user && (
+            <div 
+              className="user-profile-badge" 
+              onClick={onOpenProfile}
+              style={{ cursor: 'pointer' }}
+              title={`Employee: ${user.displayName} (${user.employeeId}) - Click to set/edit Employee ID`}
+            >
+              <div className="user-avatar-circle">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName} />
+                ) : (
+                  <span>{getInitials(user.displayName)}</span>
+                )}
+              </div>
+              <div className="user-info-text">
+                <span className="user-display-name">{user.displayName}</span>
+                <span className="user-employee-tag">{user.employeeId || 'Set ID'}</span>
+              </div>
+              <button
+                type="button"
+                className="user-logout-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  logout();
+                }}
+                title="Sign out of WorkLog"
+                aria-label="Sign out"
+              >
+                <LogOut size={15} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

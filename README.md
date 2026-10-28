@@ -34,6 +34,14 @@ A modern, responsive, industrial-grade web application built with **React.js (Vi
   - **Excel-Compatible CSV:** Encoded with a UTF-8 Byte Order Mark (`\uFEFF`) so international characters and names open cleanly in Excel without encoding dialogs.
   - **Filtered or Complete Export:** Choose whether to export filtered query results or all records in the database.
 
+- **Firebase Authentication & Access Control:**
+  - **Email & Password Authentication:** Register new user accounts and sign in securely with client-side credential verification.
+  - **Google OAuth Sign-In:** One-click single sign-on with Google accounts.
+  - **Password Recovery:** Integrated password reset flow dispatching secure Firebase reset links to registered emails.
+  - **Employee Profile Sync:** User display name and Employee ID are automatically captured and pre-filled into the Work Report form.
+  - **Quick Evaluation Mode:** Instant 1-click test profiles (Senior Engineer / Operations Lead) for rapid trial runs.
+  - **Session Management:** Persistent session state with header profile badge and secure sign-out.
+
 ---
 
 ## 🏗️ Project Architecture
@@ -41,9 +49,9 @@ A modern, responsive, industrial-grade web application built with **React.js (Vi
 ```
 employee-work-management/
 ├── index.html                      # HTML5 entry with Plus Jakarta Sans & JetBrains Mono fonts
-├── package.json                    # Project dependencies (React 19, Vite, Lucide-React, SheetJS)
+├── package.json                    # Dependencies (React 19, Firebase, Vite, Lucide-React, SheetJS)
 ├── vite.config.js                  # Vite configuration
-├── .env.example                    # Environment variable template
+├── .env.example                    # Environment variable template (Apps Script & Firebase)
 ├── .env                            # Active environment configuration
 ├── google-apps-script/
 │   ├── Code.gs                     # Complete Google Apps Script backend (doPost, doGet, locks)
@@ -51,25 +59,31 @@ employee-work-management/
 ├── src/
 │   ├── main.jsx                    # React entrypoint
 │   ├── App.jsx                     # Core application orchestrator, state, and tab routing
+│   ├── context/
+│   │   └── AuthContext.jsx         # Firebase Auth Provider & useAuth hook
 │   ├── components/
-│   │   ├── Header.jsx              # Company branding, tabs, live system clock, connection pill
-│   │   ├── Sidebar.jsx             # Collapsible navigation drawer with quick export and stats
-│   │   ├── WorkReportForm.jsx      # 9-field validated form with loading state & reset handling
+│   │   ├── Header.jsx              # Company branding, tabs, live clock, sync pill, user profile & logout
+│   │   ├── Sidebar.jsx             # Collapsible navigation drawer with user profile and quick export
+│   │   ├── WorkReportForm.jsx      # 10-field validated form with auto-fill & reset handling
 │   │   ├── WorkReportTable.jsx     # Responsive table with sortable columns & status badges
 │   │   ├── SummaryCards.jsx        # 5 metrics cards with percentage distribution
 │   │   ├── ReportDetailModal.jsx   # Detailed report viewer with print & copy actions
 │   │   ├── Notification.jsx        # Accessible toast notification system
-│   │   └── ApiConfigModal.jsx      # In-app Google Apps Script URL linker & connection tester
+│   │   ├── ApiConfigModal.jsx      # In-app Google Apps Script URL linker & connection tester
+│   │   └── FirebaseGuideModal.jsx  # Interactive Firebase Setup Guide & credential linker
 │   ├── pages/
+│   │   ├── Login.jsx               # Industrial glassmorphism login, register, and reset portal
 │   │   ├── SubmitReport.jsx        # Centered card layout page for report submission
 │   │   └── Dashboard.jsx           # Analytics, search/filter toolbar, and export controls
 │   ├── services/
+│   │   ├── firebase.js             # Firebase initialization, auth providers, and error formatters
 │   │   └── googleSheetsService.js  # HTTP service for POST/GET, ping test, and local cache
 │   ├── utils/
 │   │   ├── validation.js           # Form validation rules and field-level validators
 │   │   └── exportToExcel.js        # SheetJS (.xlsx) and UTF-8 CSV exporter
 │   └── styles/
 │       ├── global.css              # Industrial CSS tokens, typography, resets, buttons
+│       ├── auth.css                # Glassmorphism dark authentication portal styling
 │       ├── form.css                # 2-column desktop / 1-column mobile grid, input error states
 │       ├── dashboard.css           # Summary grid, search bar, table styles, responsive overflow
 │       └── components.css          # Header, toast alerts, modals, and sidebar drawer
@@ -148,6 +162,30 @@ Follow these steps to connect your React application to your Google Sheet:
 You can connect the URL in either of two ways:
 - **Directly in the Web Interface:** Click the **Google Sheets Sync** button in the header, paste your Web App URL, click **Test Connection** to verify ping latency, and click **Save Settings**.
 - **In the `.env` file:** Set `VITE_GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec` and restart `npm run dev`.
+
+---
+
+## 🔐 Firebase Authentication Setup
+
+Follow these steps to connect your project to Firebase:
+
+1. Open the [Firebase Console](https://console.firebase.google.com/).
+2. Create a new project (e.g. `worklog-enterprise`).
+3. Under **Build → Authentication**, click **Get Started** and enable:
+   - **Email/Password** provider (Enable & click Save).
+   - **Google** provider (Enable, choose project support email & click Save).
+4. Go to **Project Settings** (gear icon) → **General** tab → scroll down to **Your apps** and click **Web app** (`</>`).
+5. Copy the configuration credentials and add them to your [`.env`](file:///d:/TAP/Tap-git/TAPEM/.env) file:
+   ```env
+   VITE_FIREBASE_API_KEY=AIzaSy...
+   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your-project-id
+   VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=123456789012
+   VITE_FIREBASE_APP_ID=1:123456789012:web:abcdef123456
+   ```
+6. Alternatively, click **(Setup Guide)** on the login screen to enter the keys directly into your browser storage.
+7. *Note for offline or rapid testing:* You can use the **Quick Test / Evaluation Access** buttons (Senior Engineer or Operations Lead) to log in instantly with 1-click.
 
 ---
 

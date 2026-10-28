@@ -8,9 +8,10 @@ import {
   FileSpreadsheet, 
   Settings2, 
   X, 
-  CheckCircle2, 
-  HelpCircle 
+  LogOut,
+  BadgeCheck
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { exportToXLSX } from '../utils/exportToExcel';
 
 export default function Sidebar({ 
@@ -21,8 +22,10 @@ export default function Sidebar({
   reportCount = 0, 
   isOnlineWithSheets = false, 
   onOpenConfig, 
+  onOpenProfile,
   reports = [] 
 }) {
+  const { user, logout } = useAuth();
   const handleNav = (tab) => {
     setActiveTab(tab);
     if (window.innerWidth < 1024) {
@@ -157,6 +160,72 @@ export default function Sidebar({
 
         {/* Sidebar Footer */}
         <div className="sidebar-footer">
+          {user && (
+            <div style={{ 
+              marginBottom: '0.85rem', 
+              padding: '0.65rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden', cursor: 'pointer', flex: 1 }}
+                onClick={() => {
+                  if (onOpenProfile) onOpenProfile();
+                  if (window.innerWidth < 1024) onClose();
+                }}
+                title="Click to change Employee ID & Profile"
+              >
+                <div style={{ 
+                  width: 28, 
+                  height: 28, 
+                  borderRadius: '50%', 
+                  background: '#0284c7', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  flexShrink: 0
+                }}>
+                  {user.displayName ? user.displayName.substring(0, 2).toUpperCase() : 'U'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '0.775rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.displayName}
+                  </span>
+                  <span style={{ fontSize: '0.675rem', color: '#93c5fd', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <span>{user.employeeId || 'Set ID'}</span>
+                    <span style={{ fontSize: '0.6rem', color: '#38bdf8', textDecoration: 'underline' }}>(edit)</span>
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={logout}
+                title="Sign Out"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#f87171',
+                  cursor: 'pointer',
+                  padding: '0.35rem',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          )}
+
           <div style={{ fontSize: '0.725rem', color: '#94a3b8' }}>
             WorkLog Pro Enterprise v1.0
           </div>

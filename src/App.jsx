@@ -5,23 +5,29 @@ import Notification from './components/Notification';
 import ApiConfigModal from './components/ApiConfigModal';
 import SubmitReport from './pages/SubmitReport';
 import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import ProfileModal from './components/ProfileModal';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { 
   submitWorkReport, 
   fetchWorkReports, 
   getScriptUrl 
 } from './services/googleSheetsService';
+import { Building2, Loader2 } from 'lucide-react';
 import './styles/global.css';
 import './styles/form.css';
 import './styles/dashboard.css';
 import './styles/components.css';
 
-export default function App() {
+function MainApp() {
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'dashboard'
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dataSource, setDataSource] = useState('local_storage');
   const [sheetName, setSheetName] = useState('Work_Reports');
@@ -70,14 +76,15 @@ export default function App() {
     }
   }, [showNotification]);
 
-  // Initial load on mount
+  // Initial load when user is authenticated
   useEffect(() => {
-    loadReports(false);
-  }, [loadReports]);
+    if (user) {
+      loadReports(false);
+    }
+  }, [user, loadReports]);
 
   // Form submission handler
   const handleFormSubmit = async (formData) => {
-    // Prevent duplicate submissions
     if (isSubmitting) return false;
 
     setIsSubmitting(true);
@@ -117,6 +124,46 @@ export default function App() {
     }
   };
 
+  // 1. Loading authentication session
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#071322',
+        color: '#ffffff',
+        gap: '1rem',
+        fontFamily: 'Plus Jakarta Sans, sans-serif'
+      }}>
+        <div style={{
+          width: 54,
+          height: 54,
+          borderRadius: 14,
+          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 10px 25px rgba(2, 132, 199, 0.4)'
+        }}>
+          <Building2 size={28} color="#ffffff" />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#93c5fd' }}>
+          <Loader2 size={18} className="animate-spin" />
+          <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Authenticating session...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated user: Show Login Page
+  if (!user) {
+    return <Login />;
+  }
+
+  // 3. Authenticated user: Show Main Enterprise Dashboard & Forms
   const isOnlineWithSheets = Boolean(getScriptUrl() && dataSource === 'google_sheets');
 
   return (
@@ -133,6 +180,7 @@ export default function App() {
         reportCount={reports.length}
         isOnlineWithSheets={isOnlineWithSheets}
         onOpenConfig={() => setIsConfigModalOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
         reports={reports}
       />
 
@@ -143,6 +191,7 @@ export default function App() {
         reportCount={reports.length}
         isOnlineWithSheets={isOnlineWithSheets}
         onOpenConfig={() => setIsConfigModalOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
       />
 
@@ -173,6 +222,21 @@ export default function App() {
         onRefreshData={() => loadReports(true)}
         showNotification={showNotification}
       />
+
+      {/* Employee ID & Profile Modal */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        showNotification={showNotification}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }

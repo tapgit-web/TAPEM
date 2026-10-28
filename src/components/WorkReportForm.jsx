@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   User, 
   BadgeCheck, 
@@ -17,6 +17,7 @@ import {
   ClipboardList, 
   Loader2 
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { 
   validateWorkReportForm, 
   validateField, 
@@ -40,10 +41,26 @@ const INITIAL_FORM_STATE = {
 };
 
 export default function WorkReportForm({ onSubmit, isSubmitting = false }) {
-  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const { user } = useAuth();
+  const [formData, setFormData] = useState(() => ({
+    ...INITIAL_FORM_STATE,
+    employeeName: user?.displayName || '',
+    employeeId: user?.employeeId || ''
+  }));
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [showCustomType, setShowCustomType] = useState(false);
+
+  // Sync if user logs in or profile changes
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        employeeName: prev.employeeName || user.displayName || '',
+        employeeId: prev.employeeId || user.employeeId || ''
+      }));
+    }
+  }, [user]);
 
   // Calculate live completion progress
   const progress = useMemo(() => {
