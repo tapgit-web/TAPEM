@@ -15,9 +15,19 @@ import {
 const STORAGE_KEY_FIREBASE_CONFIG = 'worklog_firebase_config';
 const STORAGE_KEY_USER_PROFILE = 'worklog_user_extra_profile';
 
+// Default project Firebase credentials for tapdata1
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCjrFbD1szvH-sHpY3q0gbuYLvuooi5aAI',
+  authDomain: 'tapdata1-7ce00.firebaseapp.com',
+  projectId: 'tapdata1-7ce00',
+  storageBucket: 'tapdata1-7ce00.firebasestorage.app',
+  messagingSenderId: '492040872339',
+  appId: '1:492040872339:web:7fc57d0776ad0764ff0866'
+};
+
 /**
  * Retrieves the active Firebase configuration
- * Priority: 1. LocalStorage overrides -> 2. Environment variables (.env)
+ * Priority: 1. LocalStorage overrides -> 2. Environment variables (.env) -> 3. Default project credentials
  */
 export function getFirebaseConfig() {
   // Check localStorage first
@@ -33,14 +43,14 @@ export function getFirebaseConfig() {
     console.warn('Error reading stored Firebase config:', e);
   }
 
-  // Read from Vite environment variables
+  // Read from Vite environment variables (fallback to default project config if hosting provider strips .env)
   const envConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
+    apiKey: (import.meta.env.VITE_FIREBASE_API_KEY || DEFAULT_FIREBASE_CONFIG.apiKey || '').trim(),
+    authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain || '').trim(),
+    projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_CONFIG.projectId || '').trim(),
+    storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || DEFAULT_FIREBASE_CONFIG.storageBucket || '').trim(),
+    messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId || '').trim(),
+    appId: (import.meta.env.VITE_FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId || '').trim()
   };
 
   return envConfig;

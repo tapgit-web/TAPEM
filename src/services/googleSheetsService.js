@@ -56,16 +56,23 @@ export function validateAndSanitizeUrl(rawUrl) {
   return { valid: true, url };
 }
 
+// Default deployed Google Apps Script Web App URL
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDTLXv4JqO2mU8a-zR7LE76UT55ql9L1utJ-lUmcEzPnRsKh3TwlxGEgWh5ZSsIBs/exec';
+
 /**
  * Retrieves the configured Google Apps Script Web App URL
- * Priority: 1. User-configured in localStorage, 2. Environment variable (.env)
+ * Priority: 1. User-configured in localStorage, 2. Environment variable (.env), 3. Default deployed URL
  * @returns {string}
  */
 export function getScriptUrl() {
-  const envUrl = (import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || import.meta.env.VITE_GOOGLE_SCRIPT_URL || '').trim();
+  const envUrl = (
+    import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || 
+    import.meta.env.VITE_GOOGLE_SCRIPT_URL || 
+    DEFAULT_SCRIPT_URL
+  ).trim();
   const localUrl = (localStorage.getItem(STORAGE_KEY_URL) || '').trim();
 
-  // If an environment URL is configured, use it and keep localStorage in sync (avoids stale cache)
+  // If an environment or default URL is configured, use it and keep localStorage in sync (avoids stale cache)
   if (envUrl) {
     const checkedEnv = validateAndSanitizeUrl(envUrl);
     if (checkedEnv.valid) {
@@ -85,7 +92,7 @@ export function getScriptUrl() {
     return checked.valid ? checked.url : localUrl;
   }
 
-  return '';
+  return DEFAULT_SCRIPT_URL;
 }
 
 /**
